@@ -1,4 +1,4 @@
-# This Cloud Build configuration builds your Docker image and deploys it to Cloud Run.
+# This Cloud Build configuration builds your Docker image and pushes it to the repository.
 
 steps:
 # Step 1: Build the Docker image
@@ -11,33 +11,8 @@ steps:
 # Step 2: Push the Docker image to Google Container Registry (GCR) or Artifact Registry (AR)
 # This step is implicit when using the 'images' field below, but explicitly showing it can be clearer for complex builds.
 # The 'images' field below will handle the push automatically.
-# - name: 'gcr.io/cloud-builders/docker'
-#   args: ['push', 'gcr.io/$PROJECT_ID/test-public-cloud-run-service-image:$COMMIT_SHA']
-
-# Step 3: Deploy the image to Cloud Run
-# Ensure the Cloud Run API is enabled in your project.
-# The service account used by Cloud Build must have Cloud Run Admin and Service Account User roles.
-- name: 'gcr.io/cloud-builders/gcloud'
-  args:
-    - 'run'
-    - 'deploy'
-    - 'test-public-cloud-run-service' # Cloud Run service name
-    - '--image'
-    - 'gcr.io/$PROJECT_ID/test-public-cloud-run-service-image:$COMMIT_SHA' # <<< UPDATED IMAGE NAME HERE
-    - '--region'
-    - 'us-central1' # IMPORTANT: Change this to your desired Cloud Run region (e.g., us-west1, europe-west1, etc.)
-    - '--platform'
-    - 'managed'
-    # Optional: uncomment and configure if your Cloud Run service needs specific access or resources
-    # - '--allow-unauthenticated' # Allows public access
-    # - '--memory'
-    # - '512Mi'
-    # - '--cpu'
-    # - '1'
-    # - '--port'
-    # - '8080' # Default for Cloud Run, but specify if your app listens on a different port
-    # - '--set-env-vars=MY_ENV_VAR=my_value' # Example environment variable
-    # - '--service-account=your-cloud-run-service-account@$PROJECT_ID.iam.gserviceaccount.com' # Service account for the Cloud Run service itself
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/test-public-cloud-run-service-image:$COMMIT_SHA']
 
 # 'images' specifies the Docker images that are built by the build and pushed to GCR/AR.
 # Cloud Build automatically pushes these tagged images at the end of the build.
