@@ -1,0 +1,58 @@
+# This Cloud Build configuration builds your Docker image and deploys it to Cloud Run.
+
+steps:
+# Step 1: Build the Docker image
+# The '.' at the end indicates that the Dockerfile is in the current directory.
+# '$PROJECT_ID' is a built-in Cloud Build substitution variable.
+# We'll tag the image with a unique ID for Cloud Run deployment.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/test-public-cloud-run-service-image:$COMMIT_SHA', '.'] # <<< UPDATED IMAGE NAME HERE
+
+# Step 2: Push the Docker image to Google Container Registry (GCR) or Artifact Registry (AR)
+# This step is implicit when using the 'images' field below, but explicitly showing it can be clearer for complex builds.
+# The 'images' field below will handle the push automatically.
+# - name: 'gcr.io/cloud-builders/docker'
+#   args: ['push', 'gcr.io/$PROJECT_ID/test-public-cloud-run-service-image:$COMMIT_SHA']
+
+# Step 3: Deploy the image to Cloud Run
+# Ensure the Cloud Run API is enabled in your project.
+# The service account used by Cloud Build must have Cloud Run Admin and Service Account User roles.
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+    - 'run'
+    - 'deploy'
+    - 'test-public-cloud-run-service' # Cloud Run service name
+    - '--image'
+    - 'gcr.io/$PROJECT_ID/test-public-cloud-run-service-image:$COMMIT_SHA' # <<< UPDATED IMAGE NAME HERE
+    - '--region'
+    - 'us-central1' # IMPORTANT: Change this to your desired Cloud Run region (e.g., us-west1, europe-west1, etc.)
+    - '--platform'
+    - 'managed'
+    # Optional: uncomment and configure if your Cloud Run service needs specific access or resources
+    # - '--allow-unauthenticated' # Allows public access
+    # - '--memory'
+    # - '512Mi'
+    # - '--cpu'
+    # - '1'
+    # - '--port'
+    # - '8080' # Default for Cloud Run, but specify if your app listens on a different port
+    # - '--set-env-vars=MY_ENV_VAR=my_value' # Example environment variable
+    # - '--service-account=your-cloud-run-service-account@$PROJECT_ID.iam.gserviceaccount.com' # Service account for the Cloud Run service itself
+
+# 'images' specifies the Docker images that are built by the build and pushed to GCR/AR.
+# Cloud Build automatically pushes these tagged images at the end of the build.
+images:
+- 'gcr.io/$PROJECT_ID/test-public-cloud-run-service-image:$COMMIT_SHA' # <<< UPDATED IMAGE NAME HERE
+
+# Options for the entire build.
+options:
+  # This is crucial for resolving your previous error.
+  # Choose ONE of the following logging options:
+  # 1. Send logs to Cloud Logging (recommended for most cases):
+  logging: CLOUD_LOGGING_ONLY
+  # 2. Store logs in a specific GCS bucket (uncomment and replace if preferred):
+  # logsBucket: 'gs://your-cloud-build-logs-bucket' # Make sure your Cloud Build service account has write access here
+
+  # Optional: If you're using a custom service account for the build itself, uncomment and replace:
+  # serviceAccount: 'projects/$PROJECT_ID/serviceAccounts/your-cloudbuild-custom-sa@$PROJECT_ID.iam.gserviceaccount.com'
+  # Make sure this service account has permissions for building, pushing, and deploying to Cloud Run.
