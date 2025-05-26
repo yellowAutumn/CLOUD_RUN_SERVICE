@@ -47,7 +47,7 @@ def test_internal_lb(request):
         # Make the HTTP GET request.
         # This Cloud Function MUST be configured with Serverless VPC Access to your VPC
         # for this internal call to succeed.
-        response = requests.get(internal_url, timeout=15) # Set a timeout to prevent hanging
+        response = requests.get('http://'+internal_url, timeout=15) # Set a timeout to prevent hanging
 
         # Raise an HTTPError for bad responses (4xx or 5xx status codes)
         response.raise_for_status()
